@@ -7,7 +7,7 @@ const PORT = 5000;
 
 const main = async () => {
     await loadSchema();
-    // await fillDummyData();
+    await fillDummyData();
     app.listen(PORT, () => console.log(`app listening on port ${PORT}`));
 };
 
