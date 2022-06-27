@@ -1,0 +1,21 @@
+query listTweets($limit: Int!, $offset: Int) {
+    queryTweet(first: $limit, offset: $offset, filter: { not: { has: replyTo } }) {
+        id
+        author {
+            screenName
+        }
+        replyTo {
+            id
+        }
+        text
+        likedBy(filter: { screenName: { eq: "Paulette Crist28" } }) {
+            screenName
+        }
+        likedByAggregate {
+            count
+        }
+        repliesAggregate {
+            count
+        }
+    }
+}

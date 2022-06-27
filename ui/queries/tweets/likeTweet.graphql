@@ -1,0 +1,13 @@
+mutation likeTweet($id: ID!, $screenName: String!) {
+    updateTweet(input: { filter: { id: [$id] }, set: { likedBy: [{ screenName: $screenName }] } }) {
+        tweet {
+            id
+            likedBy {
+                screenName
+            }
+            likedByAggregate {
+                count
+            }
+        }
+    }
+}
