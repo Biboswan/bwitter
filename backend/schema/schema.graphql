@@ -1,0 +1,16 @@
+type User {
+    name: String!
+    screenName: String! @id
+    imageUrl: String
+    tweets: [Tweet!]! @hasInverse(field: author)
+}
+
+type Tweet {
+    id: ID! @id
+    text: String!
+    postedAt: DateTime!
+    author: User!
+    replies: [Tweet!]! @hasInverse(field: replyTo)
+    replyTo: Tweet
+    likedBy: [User!]!
+}
