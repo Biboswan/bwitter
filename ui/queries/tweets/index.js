@@ -1,6 +1,27 @@
 import { gql } from '@urql/core';
 import { LoggedUser } from 'app-constants';
 
+export const CommonTweetFields = gql`
+    fragment coreCommonTweetFields on Tweet {
+        id
+        text
+        author {
+            screenName
+            imageUrl
+            name
+        }
+        likedBy(filter: { screenName: { eq: "Paulette Crist28" } }) {
+            screenName
+        }
+        likedByAggregate {
+            count
+        }
+        repliesAggregate {
+            count
+        }
+    }
+`;
+
 export const addTweetMutation = gql`
     mutation addTweet($input: [AddTweetInput!]!) {
         addTweet(input: $input) {
@@ -22,26 +43,12 @@ export const addTweetMutation = gql`
 `;
 
 export const getTweets = gql`
+    ${CommonTweetFields}
     query listTweets($limit: Int!, $offset: Int) {
         queryTweet(first: $limit, offset: $offset, filter: { not: { has: replyTo } }) {
-            id
-            text
-            author {
-                screenName
-                imageUrl
-                name
-            }
-            replyTo {
-                id
-            }
-            likedBy(filter: { screenName: { eq: "Paulette Crist28" } }) {
-                screenName
-            }
-            likedByAggregate {
-                count
-            }
-            repliesAggregate {
-                count
+            ...coreCommonTweetFields
+            replies(first: 1) {
+                ...coreCommonTweetFields
             }
         }
     }
@@ -84,29 +91,12 @@ export const unlikeTweet = gql`
 `;
 
 export const getTweetReplies = gql`
+    ${CommonTweetFields}
     query getTweetReplies($id: ID!) {
         getTweet(id: $id) {
-            id
-            replies {
-                id
-                text
-                author {
-                    screenName
-                    imageUrl
-                    name
-                }
-                replyTo {
-                    id
-                }
-                likedBy(filter: { screenName: { eq: "Paulette Crist28" } }) {
-                    screenName
-                }
-                likedByAggregate {
-                    count
-                }
-                repliesAggregate {
-                    count
-                }
+            ...coreCommonTweetFields
+            replies(first: 10) {
+                ...coreCommonTweetFields
             }
         }
     }

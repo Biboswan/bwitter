@@ -5,15 +5,24 @@ import { Sub1, Para } from 'components/Fonts';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComment, faHeart, faFaceGrinHearts } from '@fortawesome/free-regular-svg-icons';
 import { faHeart as faHeartSolid, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { LoggedUser } from 'app-constants';
 
-const Container = styled.div`
+const Container = styled.article`
     display: grid;
     column-gap: ${BASE_SPACING * 4}px;
     grid-template-columns: 78px auto;
+    padding-bottom: ${props => (props.isExtendThread ? `${BASE_SPACING * 4}px` : '0')};
 `;
 
 const Image = styled.img`
     border-radius: 50%;
+`;
+
+const Line = styled.div`
+    width: 2px;
+    background-color: var(--color-primaryLight);
+    margin: auto;
+    height: 100%;
 `;
 
 const TextContainer = styled.div``;
@@ -91,45 +100,69 @@ const Tweet = ({
     name,
     noC = 4,
     noL = 7,
+    replies,
     isViewerLiked = false,
+    isExtendThread = false,
     ...rest
 }) => {
+    const reply = isExtendThread ? replies[0] : undefined;
     return (
-        <Container {...rest}>
-            <Image src={imageUrl} alt={`profile pic of ${name}`} />
-            <TextContainer>
-                <Heading>
-                    <Name color="primaryDark">{name}</Name>
-                    <UserName color="primaryDark">@{username}</UserName>
-                </Heading>
-                <Convo>{text}</Convo>
-                <ActionContainer>
-                    <ActionButton data-commenttweet={id} className="hoverComment">
-                        <Icon data-commenttweet={id} icon={faComment} />
-                        <Para cdata-commenttweet={id} className="actionCount" as="div">
-                            {noC}
-                        </Para>
-                    </ActionButton>
-                    <ActionButton
-                        data-liketweet={`${isViewerLiked ? 'unlike' : 'like'}` + `-${id}`}
-                        className="hoverLike"
-                    >
-                        <Icon
+        <>
+            <Container isExtendThread={isExtendThread} {...rest}>
+                <div>
+                    <Image src={imageUrl} alt={`profile pic of ${name}`} />
+                    {isExtendThread && <Line />}
+                </div>
+                <TextContainer>
+                    <Heading>
+                        <Name color="primaryDark">{name}</Name>
+                        <UserName color="primaryDark">@{username}</UserName>
+                    </Heading>
+                    <Convo>{text}</Convo>
+                    <ActionContainer>
+                        <ActionButton data-commenttweet={id} className="hoverComment">
+                            <Icon data-commenttweet={id} icon={faComment} />
+                            <Para cdata-commenttweet={id} className="actionCount" as="div">
+                                {noC}
+                            </Para>
+                        </ActionButton>
+                        <ActionButton
                             data-liketweet={`${isViewerLiked ? 'unlike' : 'like'}` + `-${id}`}
-                            className={isViewerLiked ? 'filledHeart' : ''}
-                            icon={isViewerLiked ? faHeartSolid : faHeart}
-                        />
-                        <Para
-                            data-liketweet={`${isViewerLiked ? 'unlike' : 'like'}` + `-${id}`}
-                            className={'actionCount ' + (isViewerLiked ? 'filledHeart' : '')}
-                            as="div"
+                            className="hoverLike"
                         >
-                            {noL}
-                        </Para>
-                    </ActionButton>
-                </ActionContainer>
-            </TextContainer>
-        </Container>
+                            <Icon
+                                data-liketweet={`${isViewerLiked ? 'unlike' : 'like'}` + `-${id}`}
+                                className={isViewerLiked ? 'filledHeart' : ''}
+                                icon={isViewerLiked ? faHeartSolid : faHeart}
+                            />
+                            <Para
+                                data-liketweet={`${isViewerLiked ? 'unlike' : 'like'}` + `-${id}`}
+                                className={'actionCount ' + (isViewerLiked ? 'filledHeart' : '')}
+                                as="div"
+                            >
+                                {noL}
+                            </Para>
+                        </ActionButton>
+                    </ActionContainer>
+                </TextContainer>
+            </Container>
+            {isExtendThread && (
+                <Tweet
+                    isExtendThread={false}
+                    id={reply.id}
+                    imageUrl={reply.author.imageUrl}
+                    name={reply.author.name}
+                    username={reply.author.screenName}
+                    text={reply.text}
+                    noC={reply.repliesAggregate.count}
+                    noL={reply.likedByAggregate.count}
+                    isViewerLiked={
+                        reply.likedBy.length > 0 &&
+                        reply.likedBy.find(user => user.screenName === LoggedUser.userName)
+                    }
+                />
+            )}
+        </>
     );
 };
 

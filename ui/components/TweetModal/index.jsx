@@ -1,6 +1,6 @@
 import Modal from 'react-modal';
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { BASE_SPACING, FONT_WEIGHT } from 'app-constants';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFaceGrinHearts } from '@fortawesome/free-regular-svg-icons';
@@ -30,7 +30,7 @@ Modal.defaultStyles.content = {
     border: '1px solid var(--color-modal-border)',
     borderRadius: '27px',
     padding: `${BASE_SPACING * 9}px`,
-    marginTop: '60px',
+    margin: '60px auto 0',
     maxWidth: '600px',
     height: 'fit-content',
 };

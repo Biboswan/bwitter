@@ -10,33 +10,50 @@ import LoadingBoundary from 'boundaries/loading';
 import { getTweets, likeTweet, unlikeTweet, addTweetMutation } from 'queries/tweets';
 import { LoggedUser } from 'app-constants';
 import TweetModal from 'components/TweetModal';
+import { InView } from 'react-intersection-observer';
 
 const MainContainer = styled.div`
     padding: ${BASE_SPACING * 16}px ${SPACING.pageside.sm}px ${SPACING.pageside.sm}px;
+    margin: auto;
+    width: fit-content;
 `;
 
-const renderTweet = ({
-    text,
-    id,
-    likedByAggregate,
-    author: { screenName, name, imageUrl },
-    likedBy,
-    repliesAggregate,
-}) => {
+const TweetOuterContainer = styled.div`
+    padding: ${BASE_SPACING * 6}px 0 ${BASE_SPACING * 3}px;
+    border-bottom: 1px solid var(--color-primaryLight);
+    max-width: 65ch;
+`;
+
+const renderTweet = (
+    {
+        text,
+        id,
+        likedByAggregate,
+        author: { screenName, name, imageUrl },
+        likedBy,
+        repliesAggregate,
+        replies,
+    },
+    i
+) => {
     return (
-        <Tweet
-            id={id}
-            key={id}
-            imageUrl={imageUrl}
-            name={name}
-            username={screenName}
-            text={text}
-            noC={repliesAggregate.count}
-            noL={likedByAggregate.count}
-            isViewerLiked={
-                likedBy.length > 0 && likedBy.find(user => user.screenName === LoggedUser.userName)
-            }
-        />
+        <TweetOuterContainer key={id}>
+            <Tweet
+                id={id}
+                imageUrl={imageUrl}
+                name={name}
+                username={screenName}
+                text={text}
+                noC={repliesAggregate.count}
+                noL={likedByAggregate.count}
+                isViewerLiked={
+                    likedBy.length > 0 &&
+                    likedBy.find(user => user.screenName === LoggedUser.userName)
+                }
+                replies={replies}
+                isExtendThread={replies.length > 0 && i % 3 === 0}
+            />
+        </TweetOuterContainer>
     );
 };
 
@@ -46,6 +63,7 @@ const Body = () => {
         query: getTweets,
         variables: { limit: 10, offset: 0 },
     });
+    //const [tweets, setTotalTweets] = useState(data?.queryTweet);
     const [commentingOnTweetId, setCommentingOnTweetId] = useState(null);
     const [, executeUnLikeTweet] = useMutation(unlikeTweet);
     const [, executeLikeTweet] = useMutation(likeTweet);
@@ -53,20 +71,17 @@ const Body = () => {
     const [, executeCommentTweet] = useMutation(addTweetMutation);
 
     console.log('data', data.queryTweet);
-
-    function openModal() {
-        setIsOpen(true);
-    }
-
     function afterOpenModal() {
         // references are now sync'd and can be accessed.
         subtitle.style.color = '#f00';
     }
 
     const handleClick = e => {
-        console.log('e.target.dataset', e.target.dataset);
-        if (e.target.dataset?.liketweet) {
-            const value = e.target.dataset?.liketweet.split('-');
+        let value;
+        if (e.target.dataset?.liketweet || e.target.parentNode?.dataset?.liketweet) {
+            const value =
+                e.target.dataset?.liketweet?.split('-') ||
+                e.target.parentNode?.dataset?.liketweet.split('-');
 
             switch (value[0]) {
                 case 'like':
@@ -81,7 +96,7 @@ const Body = () => {
         if (e.target.dataset?.commenttweet) {
             const id = e.target.dataset.commenttweet;
             setCommentingOnTweetId(id);
-            openModal();
+            setIsOpen(true);
         }
     };
 
@@ -108,6 +123,7 @@ const Body = () => {
                 isOpen={modalIsOpen}
                 setIsOpen={setIsOpen}
             />
+            {/* <InView as="div" onChange={handleScrollEnd} /> */}
         </MainContainer>
     );
 };

@@ -16,9 +16,9 @@ const withUrqlContainer = Component =>
                 fetchExchange,
             ];
 
-            //   if (process.env.NODE_ENV !== 'production' && isBrowser()) {
-            //     exchanges.unshift(require('@urql/devtools').devtoolsExchange)
-            //   }
+            if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
+                exchanges.unshift(require('@urql/devtools').devtoolsExchange);
+            }
 
             return {
                 url: 'http://localhost:8080/graphql',
