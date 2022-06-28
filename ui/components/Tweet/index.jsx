@@ -12,6 +12,10 @@ const Container = styled.article`
     column-gap: ${BASE_SPACING * 4}px;
     grid-template-columns: 78px auto;
     padding-bottom: ${props => (props.isExtendThread ? `${BASE_SPACING * 4}px` : '0')};
+    &:hover {
+        background-color: var(--color-commentHover);
+    }
+    cursor: pointer;
 `;
 
 const Image = styled.img`
@@ -98,17 +102,19 @@ const Tweet = ({
     text,
     username,
     name,
-    noC = 4,
-    noL = 7,
+    noC,
+    noL,
     replies,
     isViewerLiked = false,
     isExtendThread = false,
+    showFullSequence = false,
     ...rest
 }) => {
-    const reply = isExtendThread ? replies[0] : undefined;
+    const reply = isExtendThread && replies?.length ? replies[0] : undefined;
+
     return (
         <>
-            <Container isExtendThread={isExtendThread} {...rest}>
+            <Container data-tweetid={id} isExtendThread={isExtendThread} {...rest}>
                 <div>
                     <Image src={imageUrl} alt={`profile pic of ${name}`} />
                     {isExtendThread && <Line />}
@@ -146,7 +152,7 @@ const Tweet = ({
                     </ActionContainer>
                 </TextContainer>
             </Container>
-            {isExtendThread && (
+            {isExtendThread && reply && (
                 <Tweet
                     isExtendThread={false}
                     id={reply.id}

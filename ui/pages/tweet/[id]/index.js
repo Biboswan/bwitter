@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import HeaderContainer from 'components/Header';
 import styled from 'styled-components';
-import { H3 } from 'components/Fonts';
+import { H3, H4 } from 'components/Fonts';
 import { SPACING, BASE_SPACING } from 'app-constants';
 import Tweet from 'components/Tweet';
 import withUrqlContainer from 'client/urql';
 import { useMutation, useQuery } from 'urql';
 import LoadingBoundary from 'boundaries/loading';
-import { getTweets, likeTweet, unlikeTweet, addTweetMutation } from 'queries/tweets';
+import { getTweetReplies, likeTweet, unlikeTweet, addTweetMutation } from 'queries/tweets';
 import { LoggedUser } from 'app-constants';
 import TweetModal from 'components/TweetModal';
 import { useRouter } from 'next/router';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const MainContainer = styled.div`
     padding: ${BASE_SPACING * 16}px ${SPACING.pageside.sm}px ${SPACING.pageside.sm}px;
@@ -23,6 +25,32 @@ const TweetOuterContainer = styled.div`
     border-bottom: 1px solid var(--color-primaryLight);
     max-width: 65ch;
 `;
+
+const MainTweetSequenceContainer = styled(TweetOuterContainer)`
+    margin-bottom: ${BASE_SPACING * 10}px;
+`;
+
+const RepliesHeading = styled(H4)`
+    margin: ${BASE_SPACING * 8}px ${BASE_SPACING * 8}px;
+`;
+const HeaderInnerContainer = styled.div`
+    display: flex;
+    column-gap: 36px;
+    align-items: center;
+`;
+
+const ArrowBack = styled(FontAwesomeIcon)`
+    font-size: 32px;
+`;
+
+const createParentTrack = node => {
+    const track = [];
+    while (node !== null) {
+        track.unshift(node);
+        node = node.replyTo;
+    }
+    return track;
+};
 
 const renderTweet = (
     {
@@ -57,13 +85,53 @@ const renderTweet = (
     );
 };
 
+const renderMainTweetSequence = ({
+    text,
+    id,
+    likedByAggregate,
+    author: { screenName, name, imageUrl },
+    likedBy,
+    repliesAggregate,
+    isExtendThread,
+}) => {
+    return (
+        <Tweet
+            key={id}
+            id={id}
+            imageUrl={imageUrl}
+            name={name}
+            username={screenName}
+            text={text}
+            noC={repliesAggregate.count}
+            noL={likedByAggregate.count}
+            isViewerLiked={
+                likedBy.length > 0 && likedBy.find(user => user.screenName === LoggedUser.userName)
+            }
+            isExtendThread={isExtendThread}
+        />
+    );
+};
+
+const renderMainTweetSequenceContainer = track => {
+    return (
+        <MainTweetSequenceContainer>
+            {track.map((item, i) =>
+                i !== track.length - 1
+                    ? renderMainTweetSequence({ ...item, isExtendThread: true })
+                    : renderMainTweetSequence({ ...item, isExtendThread: false })
+            )}
+        </MainTweetSequenceContainer>
+    );
+};
+
 const Body = () => {
     const [modalIsOpen, setIsOpen] = useState(false);
-    const [{ data }, executeQuery] = useQuery({
-        query: getTweets,
-        variables: { limit: 10, offset: 0 },
-    });
     const router = useRouter();
+    const { id } = router.query;
+    const [{ data }, executeQuery] = useQuery({
+        query: getTweetReplies,
+        variables: { id },
+    });
     //const [tweets, setTotalTweets] = useState(data?.queryTweet);
     const [commentingOnTweetId, setCommentingOnTweetId] = useState(null);
     const [, executeUnLikeTweet] = useMutation(unlikeTweet);
@@ -97,7 +165,8 @@ const Body = () => {
         let parent = e.target;
         while (parent !== null) {
             if (parent.dataset?.tweetid) {
-                router.push(`tweet/${parent.dataset?.tweetid}`);
+                const id = parent.dataset?.tweetid;
+                router.push({ pathname: '/tweet/[id]', query: { id } });
                 return;
             }
             parent = parent.parentNode;
@@ -121,22 +190,32 @@ const Body = () => {
 
     return (
         <MainContainer onClick={handleClick}>
-            {data?.queryTweet?.map(renderTweet)}
+            {renderMainTweetSequenceContainer(createParentTrack(data.getTweet))}
+            <RepliesHeading as="h2">Replies</RepliesHeading>
+            {data?.getTweet?.replies.map(renderTweet)}
             <TweetModal
                 handleSubmitTweet={handleSubmitTweet}
                 isOpen={modalIsOpen}
                 setIsOpen={setIsOpen}
             />
-            {/* <InView as="div" onChange={handleScrollEnd} /> */}
         </MainContainer>
     );
 };
 
-function Home() {
+function TweetPage() {
+    const router = useRouter();
     return (
         <>
             <HeaderContainer>
-                <H3 as="h1">Home</H3>
+                <HeaderInnerContainer>
+                    <ArrowBack
+                        onClick={() => router.back()}
+                        role="navigation"
+                        aria-label="back"
+                        icon={faArrowLeft}
+                    />
+                    <H3 as="h1">Tweet</H3>
+                </HeaderInnerContainer>
             </HeaderContainer>
             <LoadingBoundary>
                 <Body />
@@ -145,4 +224,4 @@ function Home() {
     );
 }
 
-export default withUrqlContainer(Home);
+export default withUrqlContainer(TweetPage);

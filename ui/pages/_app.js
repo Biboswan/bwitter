@@ -17,6 +17,7 @@ const GlobalStyle = createGlobalStyle`
 		--color-primaryDark: ${COLOR.yellow[900]};
 		--color-error: ${COLOR.red};
 		--color-modal-border:  ${COLOR.yellow[600]};
+		--color-commentHover: hsl(0deg 25% 82% / 38%);
 		font-family: 'Merriweather Sans', sans-serif;
 		background-color: var(--color-bgColor);
 		color: var(--color-primaryText);
@@ -60,6 +61,10 @@ const GlobalStyle = createGlobalStyle`
 	}
 
 	*[role=button] {
+		cursor: pointer;
+	}
+
+	*[role=navigation] {
 		cursor: pointer;
 	}
 

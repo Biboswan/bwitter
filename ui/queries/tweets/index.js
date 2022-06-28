@@ -95,8 +95,17 @@ export const getTweetReplies = gql`
     query getTweetReplies($id: ID!) {
         getTweet(id: $id) {
             ...coreCommonTweetFields
+            replyTo {
+                ...coreCommonTweetFields
+                replyTo {
+                    ...coreCommonTweetFields
+                }
+            }
             replies(first: 10) {
                 ...coreCommonTweetFields
+                replies(first: 1) {
+                    ...coreCommonTweetFields
+                }
             }
         }
     }
